@@ -12,6 +12,7 @@ import {
   Volume2,
   Thermometer,
   Lock,
+  Unlock,
   Camera,
   Bell,
   Activity,
@@ -23,6 +24,12 @@ import {
   Sparkles,
   ArrowRight,
   Menu,
+  Play,
+  Pause,
+  Plus,
+  Minus,
+  Radio,
+  Eye,
 } from "lucide-react";
 
 export default function ZenithLandingPage() {
@@ -38,14 +45,41 @@ export default function ZenithLandingPage() {
     query: "",
   });
 
-  // Interactive states for Control Section Hotspots
-  const [activeControlTag, setActiveControlTag] = useState<number | null>(1);
-
-  // Interactive states for Security Section Hotspots
-  const [activeSecurityTag, setActiveSecurityTag] = useState<number | null>(2);
-
-  // Active Hero Orbital Feature
+  // ─────────────────────────────────────────────────────────────
+  // 1. HERO ORBITAL STATE
+  // ─────────────────────────────────────────────────────────────
   const [activeHeroFeature, setActiveHeroFeature] = useState<number>(0);
+
+  // ─────────────────────────────────────────────────────────────
+  // 2. CONTROL SECTION: LIVE AUTOMATION SIMULATION STATE
+  // ─────────────────────────────────────────────────────────────
+  const [activeControlPin, setActiveControlPin] = useState<number | null>(2); // Default to Lighting
+  const [roomLightingScene, setRoomLightingScene] = useState<"sunset" | "cinema" | "daylight" | "night">("sunset");
+  const [lightingDimmer, setLightingDimmer] = useState<number>(85);
+  const [roomTemperature, setRoomTemperature] = useState<number>(21.5);
+  const [climateMode, setClimateMode] = useState<"cool" | "eco" | "warm">("cool");
+  const [curtainPosition, setCurtainPosition] = useState<number>(75); // 0 = Closed, 100 = Fully Open
+  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(true);
+  const [audioVolume, setAudioVolume] = useState<number>(68);
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. SECURITY SECTION: LIVE AUTOMATION SIMULATION STATE
+  // ─────────────────────────────────────────────────────────────
+  const [activeSecurityPin, setActiveSecurityPin] = useState<number | null>(1); // Default to Lock
+  const [isDoorLocked, setIsDoorLocked] = useState<boolean>(true);
+  const [lockStatusMessage, setLockStatusMessage] = useState<string>("Deadbolt Engaged • Touch to Unlock");
+  const [securityArmMode, setSecurityArmMode] = useState<"away" | "home" | "night">("away");
+  const [isFlashingStrobe, setIsFlashingStrobe] = useState<boolean>(false);
+  const [currentTimeString, setCurrentTimeString] = useState<string>("21:30:00");
+
+  // Live timer for camera simulation HUD
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTimeString(now.toTimeString().split(" ")[0]);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,6 +88,26 @@ export default function ZenithLandingPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleToggleLock = () => {
+    if (isDoorLocked) {
+      setIsDoorLocked(false);
+      setLockStatusMessage("Disengaged • Entry Allowed");
+      // Auto relock after 6s for authentic automation feel
+      setTimeout(() => {
+        setIsDoorLocked(true);
+        setLockStatusMessage("Auto-Relocked • Deadbolt Engaged");
+      }, 6000);
+    } else {
+      setIsDoorLocked(true);
+      setLockStatusMessage("Deadbolt Engaged • Front Entry Secured");
+    }
+  };
+
+  const handleFlashStrobe = () => {
+    setIsFlashingStrobe(true);
+    setTimeout(() => setIsFlashingStrobe(false), 1600);
+  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,122 +121,36 @@ export default function ZenithLandingPage() {
 
   const heroFeatures = [
     {
-      id: 1,
+      id: 0,
       title: "Comfort",
       icon: Sun,
-      position: "top-[-18px] left-[-30px] sm:top-[-10px] sm:left-[-40px]",
-      tag: "Circadian Lighting & Climate",
-      description: "Tailors your indoor atmosphere naturally to match the daylight cycle.",
+      tag: "Circadian Warmth & Climate",
+      metric: "21.5°C Optimal",
+      description: "Auto-balances room warmth and light tone seamlessly with natural sunrise and sunset rhythms.",
     },
     {
-      id: 2,
+      id: 1,
       title: "Security",
       icon: ShieldCheck,
-      position: "bottom-[-20px] left-[70px] sm:bottom-[-25px] sm:left-[100px]",
-      tag: "Encrypted 24/7 Protection",
-      description: "Smart boundary sensing and biometric door access without false alarms.",
+      tag: "24/7 Boundary Sentry",
+      metric: "Perimeter Armed",
+      description: "Encrypted biometric door entry and multi-radar sensors that guard your villa without false alarms.",
     },
     {
-      id: 3,
+      id: 2,
       title: "Convenience",
       icon: Smartphone,
-      position: "bottom-[-20px] right-[60px] sm:bottom-[-25px] sm:right-[90px]",
-      tag: "Unified Mobile & Voice",
-      description: "Whole-home master scenes like 'Good Night' and 'Entertain' in one touch.",
+      tag: "One-Touch Whole Home",
+      metric: "14 Devices Synced",
+      description: "Master scenes like 'Good Night' or 'Cinema' synchronize every light, shade, and lock instantly.",
     },
     {
-      id: 4,
+      id: 3,
       title: "Smart Control",
       icon: SlidersHorizontal,
-      position: "top-[-18px] right-[-30px] sm:top-[-10px] sm:right-[-45px]",
-      tag: "Glass Touch Panels",
-      description: "Minimalist wall panels with gold bezels and local-first reliability.",
-    },
-  ];
-
-  const controlHotspots = [
-    {
-      id: 1,
-      title: "Climate Control",
-      icon: Thermometer,
-      coords: "top-[26%] left-[6%] sm:top-[28%] sm:left-[12%]",
-      badge: "Wall Touch Panel",
-      features: [
-        { label: "Precision Multi-Zone Climate", sub: "Individual room temperature regulation" },
-        { label: "Air Quality & Humidity", sub: "Automated air purification sensing" },
-        { label: "Smart Pre-Cooling", sub: "Learns schedules to optimize comfort" },
-      ],
-    },
-    {
-      id: 2,
-      title: "Lighting Control",
-      icon: Lightbulb,
-      coords: "top-[16%] left-[60%] sm:top-[18%] sm:left-[66%]",
-      badge: "Pendant & Cove LEDs",
-      features: [
-        { label: "Flicker-Free Smooth Dimming", sub: "0.1% micro-step illumination tuning" },
-        { label: "Circadian Warmth Adaptation", sub: "Warm amber evening, crisp daylight" },
-        { label: "One-Touch Ambient Presets", sub: "Pre-set Dinner, Reading & Cinema moods" },
-      ],
-    },
-    {
-      id: 3,
-      title: "Curtain Control",
-      icon: Blinds,
-      coords: "top-[18%] right-[4%] sm:top-[22%] sm:right-[15%]",
-      badge: "Motorized Drapery",
-      features: [
-        { label: "Whisper-Quiet Motorized Drapery", sub: "Smooth automated glide mechanism" },
-        { label: "Automated Sunrise/Sunset Sync", sub: "Opens with dawn, secures at dusk" },
-        { label: "Solar Heat Optimization", sub: "Automated shading during peak heat" },
-      ],
-    },
-    {
-      id: 4,
-      title: "Audio & Video",
-      icon: Volume2,
-      coords: "bottom-[16%] left-[45%] sm:bottom-[18%] sm:left-[52%]",
-      badge: "Smart Hub & OLED",
-      features: [
-        { label: "Synchronized Whole-Home Audio", sub: "Lossless acoustic streaming across zones" },
-        { label: "Cinema Scene Integration", sub: "Dim lights, lower shades, power display" },
-        { label: "Voice & Streaming Control", sub: "Compatible with Apple Home, Alexa & Siri" },
-      ],
-    },
-  ];
-
-  const securityHotspots = [
-    {
-      id: 1,
-      title: "Biometric Smart Lock",
-      icon: Lock,
-      coords: "top-[44%] left-[6%] sm:top-[42%] sm:left-[9%]",
-      desc: "Sub-second 3D fingerprint scanner, encrypted touchscreen keypad, and auto-deadbolt latching upon door closure.",
-      meta: "Status: Locked & Encrypted",
-    },
-    {
-      id: 2,
-      title: "2K Live Camera Surveillance",
-      icon: Camera,
-      coords: "top-[7%] left-[36%] sm:top-[6%] sm:left-[39%]",
-      desc: "Discreet ceiling dome camera with enhanced color night vision, AI boundary detection, and two-way crystal intercom.",
-      meta: "Resolution: 2K HDR • Local Storage",
-    },
-    {
-      id: 3,
-      title: "Intelligent Motion Sensing",
-      icon: Activity,
-      coords: "top-[48%] left-[24%] sm:top-[44%] sm:left-[27%]",
-      desc: "Multi-vector radar sensors that differentiate family members and pets from unauthorized perimeter intrusions.",
-      meta: "Balcony & Perimeter Guard Active",
-    },
-    {
-      id: 4,
-      title: "Instant Mobile Security Dashboard",
-      icon: Bell,
-      coords: "top-[38%] left-[58%] sm:top-[36%] sm:left-[56%]",
-      desc: "Direct push notifications with live video snapshot, one-tap emergency lockdown, and instant deterrence lighting triggers.",
-      meta: "Alert: Front Entry Secured",
+      tag: "Tactile Glass Panels",
+      metric: "Local-First Core",
+      description: "Architectural wall panels with brushed gold chamfers that operate even if the internet goes offline.",
     },
   ];
 
@@ -194,8 +162,8 @@ export default function ZenithLandingPage() {
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
           isScrolled
-            ? "bg-black/90 backdrop-blur-md border-b border-white/10 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
-            : "bg-gradient-to-b from-black/80 to-transparent py-5"
+            ? "bg-black/95 backdrop-blur-md border-b border-white/10 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.85)]"
+            : "bg-gradient-to-b from-black/80 via-black/40 to-transparent py-5"
         }`}
       >
         <div className="max-w-[1540px] mx-auto px-6 sm:px-10 flex items-center justify-between">
@@ -224,10 +192,10 @@ export default function ZenithLandingPage() {
               Why Zenith
             </a>
             <a href="#control" className="hover:text-white transition-colors">
-              Home Control
+              Interactive Room
             </a>
             <a href="#security" className="hover:text-white transition-colors">
-              Security
+              Live Security
             </a>
             <div className="relative group">
               <button className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer py-1">
@@ -236,7 +204,7 @@ export default function ZenithLandingPage() {
               </button>
               <div className="absolute top-full left-0 mt-2 w-52 py-2 bg-[#121212] border border-white/10 rounded-xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200">
                 <a
-                  href="#hero"
+                  href="#control"
                   className="block px-4 py-2.5 text-xs text-neutral-300 hover:bg-white/10 hover:text-white"
                 >
                   Residential Automation
@@ -261,7 +229,7 @@ export default function ZenithLandingPage() {
           <div className="hidden sm:flex items-center gap-4">
             <button
               onClick={() => setDemoModalOpen(true)}
-              className="relative group overflow-hidden px-6 py-2.5 rounded-full bg-white text-black font-medium text-xs tracking-wider uppercase transition-all duration-300 hover:bg-[#c9a84c] hover:shadow-[0_0_20px_rgba(201,168,76,0.4)] hover:-translate-y-0.5 cursor-pointer"
+              className="relative group overflow-hidden px-6 py-2.5 rounded-full bg-white text-black font-medium text-xs tracking-wider uppercase transition-all duration-300 hover:bg-[#c9a84c] hover:shadow-[0_0_20px_rgba(201,168,76,0.5)] hover:-translate-y-0.5 cursor-pointer"
             >
               <span className="relative z-10">Book A Demo</span>
             </button>
@@ -299,14 +267,14 @@ export default function ZenithLandingPage() {
               onClick={() => setMobileMenuOpen(false)}
               className="text-neutral-300 hover:text-white py-1"
             >
-              Home Control
+              Interactive Room
             </a>
             <a
               href="#security"
               onClick={() => setMobileMenuOpen(false)}
               className="text-neutral-300 hover:text-white py-1"
             >
-              Security
+              Live Security
             </a>
             <button
               onClick={() => {
@@ -322,43 +290,43 @@ export default function ZenithLandingPage() {
       </header>
 
       {/* ───────────────────────────────────────────────────────────
-          2. HERO SECTION (Item 1)
+          2. HERO SECTION (Item 1) - Crisp, Vibrant & Interactive
       ─────────────────────────────────────────────────────────── */}
       <section id="hero" className="relative min-h-screen flex items-center pt-24 pb-16 overflow-hidden">
-        {/* Background Image with Dark Vignette */}
+        {/* Background Image: Vivid, High-Resolution Luxury Penthouse (NO HEAVY MUDDY OVERLAY) */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/assets/hero-lifestyle.jpg"
             alt="Zenith Luxury Smart Living"
             fill
             priority
-            className="object-cover object-center brightness-85"
+            className="object-cover object-center brightness-105 contrast-102"
           />
-          {/* Subtle gradient overlays so typography stays high-contrast */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent sm:via-black/60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50" />
+          {/* Subtle gradient specifically on the left for crisp text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-[1540px] mx-auto px-6 sm:px-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
             <div className="lg:col-span-6 xl:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-[#c9a84c]" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-[#c9a84c]/30 backdrop-blur-md shadow-lg">
+                <span className="w-2 h-2 rounded-full bg-[#c9a84c] animate-ping" />
                 <span className="text-[11px] font-medium tracking-[0.2em] text-[#c9a84c] uppercase">
-                  Residential Automation Ecosystem
+                  Zenith Residential Automation
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight text-white leading-[1.12]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight text-white leading-[1.12] drop-shadow-[0_2px_15px_rgba(0,0,0,0.8)]">
                 Intelligent Living, <br />
-                <span className="font-normal text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-200 to-[#c9a84c]">
+                <span className="font-normal text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-100 to-[#c9a84c]">
                   Simplified.
                 </span>
               </h1>
 
-              <p className="text-neutral-300 text-base sm:text-lg font-light leading-relaxed max-w-xl">
-                Transform your home into a smarter, safer, and effortlessly luxurious sanctuary with
+              <p className="text-neutral-200 text-base sm:text-lg font-light leading-relaxed max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
+                Transform your home into a smarter, safer, and effortlessly luxurious space with
                 Zenith&apos;s bespoke residential automation solutions.
               </p>
 
@@ -366,94 +334,157 @@ export default function ZenithLandingPage() {
               <div className="pt-2 flex flex-wrap gap-4 items-center">
                 <button
                   onClick={() => setDemoModalOpen(true)}
-                  className="px-8 py-3.5 rounded-full bg-white text-black font-medium text-sm tracking-wide transition-all duration-300 hover:bg-[#c9a84c] hover:shadow-[0_8px_30px_rgba(201,168,76,0.35)] hover:-translate-y-0.5 cursor-pointer"
+                  className="px-8 py-3.5 rounded-full bg-white text-black font-medium text-sm tracking-wide transition-all duration-300 hover:bg-[#c9a84c] hover:shadow-[0_8px_30px_rgba(201,168,76,0.45)] hover:-translate-y-0.5 cursor-pointer shadow-xl"
                 >
                   Book A Demo
                 </button>
                 <a
-                  href="#why-zenith"
-                  className="px-7 py-3.5 rounded-full border border-white/40 text-white font-light text-sm tracking-wide backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:border-white hover:-translate-y-0.5"
+                  href="#control"
+                  className="px-7 py-3.5 rounded-full border border-white/50 bg-black/40 text-white font-light text-sm tracking-wide backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-black hover:border-white hover:-translate-y-0.5 shadow-lg"
                 >
-                  Explore Smart Living
+                  Experience Smart Home
                 </a>
               </div>
 
-              {/* Quick Assurance Badges */}
-              <div className="pt-6 flex flex-wrap gap-6 text-xs text-neutral-400 font-light border-t border-white/10">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#c9a84c]" />
-                  <span>Local-First Control</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#c9a84c]" />
-                  <span>10-Year Hardware Warranty</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#c9a84c]" />
-                  <span>Architectural Black Glass</span>
+              {/* Live Interactive Dashboard Readout */}
+              <div className="pt-4 border-t border-white/15">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400 mb-2 font-medium">
+                  Live System Synchronization
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs text-neutral-200 backdrop-blur-md flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Scene: <strong>{roomLightingScene.toUpperCase()}</strong></span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs text-neutral-200 backdrop-blur-md flex items-center gap-2">
+                    <Thermometer className="w-3.5 h-3.5 text-[#c9a84c]" />
+                    <span>Climate: <strong>{roomTemperature.toFixed(1)}°C</strong></span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs text-neutral-200 backdrop-blur-md flex items-center gap-2">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#c9a84c]" />
+                    <span>Security: <strong className="text-emerald-400">ARMED</strong></span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Orbital Diagram (Exact structure inspired from reference) */}
+            {/* Right Orbital Diagram (Exact Match to Screenshot, Pinned & Animated) */}
             <div className="lg:col-span-6 xl:col-span-6 flex justify-center items-center">
-              <div className="relative w-full max-w-[500px] aspect-square flex items-center justify-center">
-                {/* Orbital Connecting Circles & Waves */}
-                <div className="absolute inset-0 rounded-full border border-white/15 scale-90 animate-breathe pointer-events-none" />
-                <div className="absolute inset-4 rounded-full border border-dashed border-[#c9a84c]/25 pointer-events-none" />
-                <div className="absolute inset-16 rounded-full border border-white/10 pointer-events-none" />
+              <div className="relative w-full max-w-[480px] aspect-square flex items-center justify-center">
+                {/* Orbital Geometric Track Rings */}
+                <div className="absolute inset-0 rounded-full border border-white/20 animate-breathe pointer-events-none" />
+                <div className="absolute inset-8 rounded-full border border-dashed border-[#c9a84c]/30 pointer-events-none" />
+                <div className="absolute inset-20 rounded-full border border-white/15 pointer-events-none" />
 
-                {/* Central Focus Pulse Marker */}
-                <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full glass-panel flex flex-col items-center justify-center p-3 text-center border border-[#c9a84c]/40 shadow-[0_0_40px_rgba(201,168,76,0.25)]">
-                  <div className="w-3 h-3 rounded-full bg-[#c9a84c] mb-1.5 animate-ping opacity-75" />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c9a84c]">
-                    Zenith Core
+                {/* Central Focus Core */}
+                <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full glass-panel flex flex-col items-center justify-center p-3 text-center border border-[#c9a84c]/60 shadow-[0_0_50px_rgba(201,168,76,0.35)]">
+                  <div className="w-3 h-3 rounded-full bg-[#c9a84c] mb-1 animate-ping" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#c9a84c]">
+                    Zenith
                   </span>
-                  <span className="text-[11px] text-neutral-300 font-light leading-tight">
-                    Unified Sync
+                  <span className="text-[10px] text-neutral-200 font-light">
+                    Smart Core
                   </span>
                 </div>
 
-                {/* 4 Orbital Feature Nodes */}
-                {heroFeatures.map((feat, idx) => {
-                  const Icon = feat.icon;
-                  const isActive = activeHeroFeature === idx;
-                  return (
-                    <div
-                      key={feat.id}
-                      className={`absolute ${feat.position} z-20 flex flex-col items-center cursor-pointer group`}
-                      onClick={() => setActiveHeroFeature(idx)}
-                    >
-                      {/* Node Circle */}
-                      <div
-                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
-                          isActive
-                            ? "bg-[#c9a84c] text-black scale-110 shadow-[0_0_30px_rgba(201,168,76,0.6)]"
-                            : "glass-pill text-white hover:bg-white hover:text-black hover:scale-105"
-                        }`}
-                      >
-                        <Icon className="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-110" />
-                      </div>
+                {/* 4 Orbital Feature Nodes (Comfort, Security, Convenience, Smart Control) */}
+                {/* Node 1: Comfort (Top-Left) */}
+                <button
+                  onClick={() => setActiveHeroFeature(0)}
+                  className="absolute top-1 left-2 sm:top-2 sm:left-4 z-20 flex flex-col items-center group cursor-pointer"
+                >
+                  <div
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
+                      activeHeroFeature === 0
+                        ? "bg-[#c9a84c] text-black scale-110 shadow-[0_0_35px_rgba(201,168,76,0.8)]"
+                        : "glass-pill text-white hover:bg-white hover:text-black hover:scale-105"
+                    }`}
+                  >
+                    <Sun className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium tracking-wide text-white drop-shadow-lg">
+                    Comfort
+                  </span>
+                </button>
 
-                      {/* Node Label */}
-                      <span className="mt-2 text-xs sm:text-sm font-medium tracking-wide text-white drop-shadow-md">
-                        {feat.title}
-                      </span>
+                {/* Node 2: Security (Bottom-Left) */}
+                <button
+                  onClick={() => setActiveHeroFeature(1)}
+                  className="absolute bottom-2 left-16 sm:bottom-4 sm:left-24 z-20 flex flex-col items-center group cursor-pointer"
+                >
+                  <div
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
+                      activeHeroFeature === 1
+                        ? "bg-[#c9a84c] text-black scale-110 shadow-[0_0_35px_rgba(201,168,76,0.8)]"
+                        : "glass-pill text-white hover:bg-white hover:text-black hover:scale-105"
+                    }`}
+                  >
+                    <ShieldCheck className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium tracking-wide text-white drop-shadow-lg">
+                    Security
+                  </span>
+                </button>
 
-                      {/* Tooltip detail on hover or active */}
-                      <div
-                        className={`absolute top-full mt-2 w-48 p-2.5 rounded-lg bg-black/90 border border-white/15 text-left text-[11px] text-neutral-300 shadow-2xl pointer-events-none transition-all duration-300 ${
-                          isActive ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0"
-                        }`}
-                      >
-                        <p className="text-white font-medium text-xs text-[#c9a84c]">{feat.tag}</p>
-                        <p className="mt-0.5 leading-snug">{feat.description}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+                {/* Node 3: Convenience (Bottom-Right) */}
+                <button
+                  onClick={() => setActiveHeroFeature(2)}
+                  className="absolute bottom-2 right-16 sm:bottom-4 sm:right-24 z-20 flex flex-col items-center group cursor-pointer"
+                >
+                  <div
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
+                      activeHeroFeature === 2
+                        ? "bg-[#c9a84c] text-black scale-110 shadow-[0_0_35px_rgba(201,168,76,0.8)]"
+                        : "glass-pill text-white hover:bg-white hover:text-black hover:scale-105"
+                    }`}
+                  >
+                    <Smartphone className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium tracking-wide text-white drop-shadow-lg">
+                    Convenience
+                  </span>
+                </button>
+
+                {/* Node 4: Smart Control (Top-Right) */}
+                <button
+                  onClick={() => setActiveHeroFeature(3)}
+                  className="absolute top-1 right-2 sm:top-2 sm:right-4 z-20 flex flex-col items-center group cursor-pointer"
+                >
+                  <div
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
+                      activeHeroFeature === 3
+                        ? "bg-[#c9a84c] text-black scale-110 shadow-[0_0_35px_rgba(201,168,76,0.8)]"
+                        : "glass-pill text-white hover:bg-white hover:text-black hover:scale-105"
+                    }`}
+                  >
+                    <SlidersHorizontal className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium tracking-wide text-white drop-shadow-lg">
+                    Smart Control
+                  </span>
+                </button>
               </div>
             </div>
+          </div>
+
+          {/* Active Feature Interactive Banner Under Hero */}
+          <div className="mt-12 p-4 sm:p-5 rounded-2xl glass-panel border border-[#c9a84c]/30 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#c9a84c] text-black flex items-center justify-center font-bold">
+                {activeHeroFeature + 1}
+              </div>
+              <div>
+                <p className="text-xs text-[#c9a84c] uppercase font-semibold tracking-wider">
+                  {heroFeatures[activeHeroFeature].tag}
+                </p>
+                <p className="text-sm text-neutral-200 font-light">
+                  {heroFeatures[activeHeroFeature].description}
+                </p>
+              </div>
+            </div>
+            <span className="px-3.5 py-1 rounded-full bg-white/10 text-xs text-white border border-white/20 whitespace-nowrap">
+              {heroFeatures[activeHeroFeature].metric}
+            </span>
           </div>
         </div>
       </section>
@@ -462,8 +493,8 @@ export default function ZenithLandingPage() {
           3. BLACK BACKGROUND SECTION: WHY ZENITH HOME AUTOMATION? (Item 2)
       ─────────────────────────────────────────────────────────── */}
       <section id="why-zenith" className="relative bg-black py-28 border-t border-neutral-900 overflow-hidden">
-        {/* Ambient radial lighting */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[radial-gradient(ellipse,rgba(201,168,76,0.06),transparent_70%)] pointer-events-none" />
+        {/* Soft Gold Radial Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[450px] bg-[radial-gradient(ellipse,rgba(201,168,76,0.08),transparent_70%)] pointer-events-none" />
 
         <div className="max-w-[1440px] mx-auto px-6 sm:px-10 relative z-10">
           {/* Header */}
@@ -475,16 +506,16 @@ export default function ZenithLandingPage() {
               Why Choose Zenith Home Automation?
             </h2>
             <p className="text-neutral-400 text-base font-light leading-relaxed">
-              Experience the perfect harmony of luxury architecture, invisible technology, and
-              effortless daily convenience tailored to how you live.
+              Experience the perfect blend of architectural luxury, reliable technology, and
+              effortless daily convenience tailored to your home.
             </p>
           </div>
 
-          {/* 4 Cards Grid with Circular Rings */}
+          {/* 4 Cards Grid with Expanding Rings on Hover */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Card 1: Comfort */}
-            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/80">
-              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_25px_rgba(201,168,76,0.3)]">
+            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/90 border border-transparent hover:border-white/10">
+              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-115 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_30px_rgba(201,168,76,0.35)]">
                 <Sun className="w-10 h-10 text-white group-hover:text-[#c9a84c] transition-colors" />
               </div>
               <h3 className="text-xl font-normal text-white mb-2">Atmosphere & Comfort</h3>
@@ -495,8 +526,8 @@ export default function ZenithLandingPage() {
             </div>
 
             {/* Card 2: Security */}
-            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/80">
-              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_25px_rgba(201,168,76,0.3)]">
+            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/90 border border-transparent hover:border-white/10">
+              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-115 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_30px_rgba(201,168,76,0.35)]">
                 <ShieldCheck className="w-10 h-10 text-white group-hover:text-[#c9a84c] transition-colors" />
               </div>
               <h3 className="text-xl font-normal text-white mb-2">Proactive Security</h3>
@@ -507,8 +538,8 @@ export default function ZenithLandingPage() {
             </div>
 
             {/* Card 3: Convenience */}
-            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/80">
-              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_25px_rgba(201,168,76,0.3)]">
+            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/90 border border-transparent hover:border-white/10">
+              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-115 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_30px_rgba(201,168,76,0.35)]">
                 <SlidersHorizontal className="w-10 h-10 text-white group-hover:text-[#c9a84c] transition-colors" />
               </div>
               <h3 className="text-xl font-normal text-white mb-2">Effortless Convenience</h3>
@@ -519,8 +550,8 @@ export default function ZenithLandingPage() {
             </div>
 
             {/* Card 4: Energy Efficiency */}
-            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/80">
-              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_25px_rgba(201,168,76,0.3)]">
+            <div className="group text-center flex flex-col items-center p-6 rounded-2xl transition-all duration-300 hover:bg-neutral-950/90 border border-transparent hover:border-white/10">
+              <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-115 group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/10 group-hover:shadow-[0_0_30px_rgba(201,168,76,0.35)]">
                 <Zap className="w-10 h-10 text-white group-hover:text-[#c9a84c] transition-colors" />
               </div>
               <h3 className="text-xl font-normal text-white mb-2">Intelligent Efficiency</h3>
@@ -532,7 +563,7 @@ export default function ZenithLandingPage() {
           </div>
 
           {/* Zenith Hardware Assurance Bar */}
-          <div className="mt-20 border border-white/10 rounded-2xl p-6 sm:p-8 bg-neutral-950/60 backdrop-blur-md">
+          <div className="mt-20 border border-white/10 rounded-2xl p-6 sm:p-8 bg-neutral-950/80 backdrop-blur-md">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
               <div className="flex items-center gap-4">
                 <div className="w-11 h-11 rounded-full bg-[#c9a84c]/10 flex items-center justify-center border border-[#c9a84c]/30 shrink-0">
@@ -550,7 +581,7 @@ export default function ZenithLandingPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-white">Local-First Architecture</h4>
-                  <p className="text-xs text-neutral-400">Continues operating smoothly if internet drops</p>
+                  <p className="text-xs text-neutral-400">Continues operating smoothly even if internet drops</p>
                 </div>
               </div>
 
@@ -580,178 +611,668 @@ export default function ZenithLandingPage() {
 
       {/* ───────────────────────────────────────────────────────────
           4. SECTION 3: CONTROL YOUR ENTIRE HOME — EFFORTLESSLY (Item 3.i)
+             Interactive Automation: Real Lighting Transitions, Thermostat, Motorized Curtains
       ─────────────────────────────────────────────────────────── */}
-      <section id="control" className="relative min-h-[850px] lg:min-h-[920px] flex items-center justify-center overflow-hidden border-t border-neutral-900">
-        {/* Upgraded Background Image Showcase */}
+      <section id="control" className="relative min-h-[920px] lg:min-h-[1000px] flex flex-col justify-between overflow-hidden border-t border-neutral-900 bg-neutral-950">
+        {/* Background Image: Vivid, High-Definition Luxury Penthouse (VIBRANT & BRIGHT) */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/assets/control-home.jpg"
             alt="Zenith Luxury Living Room Control Experience"
             fill
-            className="object-cover object-center brightness-90"
+            className="object-cover object-center brightness-105 contrast-102"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/70" />
+
+          {/* Dynamic Live Lighting Mode Overlay (Simulates actual automation changing the room ambiance) */}
+          <div
+            className={`absolute inset-0 transition-all duration-700 pointer-events-none ${
+              roomLightingScene === "sunset"
+                ? "bg-[radial-gradient(ellipse_at_70%_30%,rgba(255,160,40,0.18),transparent_65%)]"
+                : roomLightingScene === "cinema"
+                ? "bg-black/55 backdrop-brightness-75"
+                : roomLightingScene === "daylight"
+                ? "bg-[radial-gradient(ellipse_at_30%_20%,rgba(240,245,255,0.22),transparent_70%)]"
+                : "bg-black/40"
+            }`}
+          />
+
+          {/* Subtle top/bottom vignettes for navigation & contrast */}
+          <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/80 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black via-black/80 to-transparent" />
         </div>
 
-        {/* Header Overlay */}
-        <div className="absolute top-10 sm:top-14 left-0 w-full z-20 text-center px-6">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight drop-shadow-lg">
+        {/* Section Header */}
+        <div className="relative z-20 text-center pt-14 px-6 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/70 border border-white/20 text-[#c9a84c] text-xs uppercase tracking-widest backdrop-blur-md mb-3 shadow-lg">
+            <Sparkles className="w-3.5 h-3.5 text-[#c9a84c]" />
+            <span>Interactive Living Room Showcase</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)]">
             Control Your Entire Home — Effortlessly
           </h2>
-          <p className="text-neutral-300 text-sm sm:text-base font-light tracking-wide mt-2 drop-shadow-md">
-            Every Aspect of Your Living Space at Your Fingertips
+          <p className="text-neutral-200 text-sm sm:text-base font-light tracking-wide mt-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+            Click on any product pin below to test the live smart home automation response.
           </p>
         </div>
 
-        {/* Interactive Hotspots Layer */}
-        <div className="relative z-20 w-full max-w-[1540px] h-[750px] lg:h-[820px] mx-auto px-6">
-          {controlHotspots.map((spot) => {
-            const Icon = spot.icon;
-            const isExpanded = activeControlTag === spot.id;
-
-            return (
+        {/* Pinned Hardware Markers (STABLE ANCHORS - NEVER SHIFT ON CLICK) */}
+        <div className="relative z-20 w-full max-w-[1540px] flex-1 mx-auto px-6 h-[500px] sm:h-[580px]">
+          {/* PIN 1: CLIMATE CONTROL (Wall Touch Panel - Left) */}
+          <div className="absolute top-[35%] left-[8%] sm:top-[38%] sm:left-[11%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setActiveControlPin(activeControlPin === 1 ? null : 1)}
+              className="flex flex-col items-center group cursor-pointer"
+            >
               <div
-                key={spot.id}
-                className={`absolute ${spot.coords} transition-all duration-300 z-30`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                  activeControlPin === 1
+                    ? "bg-[#c9a84c] text-black scale-125 shadow-[0_0_25px_rgba(201,168,76,0.9)]"
+                    : "bg-white text-black hover:bg-[#c9a84c] hover:scale-110"
+                }`}
               >
-                {/* Hotspot Pin / Trigger */}
-                <div
-                  onClick={() => setActiveControlTag(isExpanded ? null : spot.id)}
-                  className="flex flex-col items-center cursor-pointer group"
+                <Thermometer className="w-5 h-5" />
+              </div>
+              <span className="mt-1.5 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                Climate: {roomTemperature.toFixed(1)}°C
+              </span>
+            </button>
+          </div>
+
+          {/* PIN 2: LIGHTING CONTROL (Chandelier / Chandelier cove - Top Right) */}
+          <div className="absolute top-[20%] left-[68%] sm:top-[22%] sm:left-[70%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setActiveControlPin(activeControlPin === 2 ? null : 2)}
+              className="flex flex-col items-center group cursor-pointer"
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                  activeControlPin === 2
+                    ? "bg-[#c9a84c] text-black scale-125 shadow-[0_0_25px_rgba(201,168,76,0.9)]"
+                    : "bg-white text-black hover:bg-[#c9a84c] hover:scale-110"
+                }`}
+              >
+                <Lightbulb className="w-5 h-5" />
+              </div>
+              <span className="mt-1.5 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                Lighting: {lightingDimmer}%
+              </span>
+            </button>
+          </div>
+
+          {/* PIN 3: CURTAIN CONTROL (Motorized Windows - Middle Left) */}
+          <div className="absolute top-[28%] left-[24%] sm:top-[29%] sm:left-[23%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setActiveControlPin(activeControlPin === 3 ? null : 3)}
+              className="flex flex-col items-center group cursor-pointer"
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                  activeControlPin === 3
+                    ? "bg-[#c9a84c] text-black scale-125 shadow-[0_0_25px_rgba(201,168,76,0.9)]"
+                    : "bg-white text-black hover:bg-[#c9a84c] hover:scale-110"
+                }`}
+              >
+                <Blinds className="w-5 h-5" />
+              </div>
+              <span className="mt-1.5 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                Shades: {curtainPosition}%
+              </span>
+            </button>
+          </div>
+
+          {/* PIN 4: AUDIO & VIDEO (Smart Hub Speaker on Center Table) */}
+          <div className="absolute top-[68%] left-[55%] sm:top-[70%] sm:left-[57%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setActiveControlPin(activeControlPin === 4 ? null : 4)}
+              className="flex flex-col items-center group cursor-pointer"
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                  activeControlPin === 4
+                    ? "bg-[#c9a84c] text-black scale-125 shadow-[0_0_25px_rgba(201,168,76,0.9)]"
+                    : "bg-white text-black hover:bg-[#c9a84c] hover:scale-110"
+                }`}
+              >
+                <Volume2 className="w-5 h-5" />
+              </div>
+              <span className="mt-1.5 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                Sound: {isPlayingAudio ? "Playing" : "Paused"}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* ─────────────────────────────────────────────────────────────
+            LIVE INTERACTIVE SMART HOME CONSOLE DOCK (Real Automation Feel)
+        ───────────────────────────────────────────────────────────── */}
+        <div className="relative z-30 max-w-[1200px] w-full mx-auto px-6 pb-12">
+          <div className="rounded-2xl glass-panel border border-white/20 p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+            {/* Header Tabs */}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs uppercase tracking-wider text-neutral-300 font-semibold">
+                  Active System:
+                </span>
+                <span className="text-xs uppercase tracking-wider text-[#c9a84c] font-bold">
+                  {activeControlPin === 1
+                    ? "Multi-Zone Climate"
+                    : activeControlPin === 2
+                    ? "Circadian Lighting & Scenes"
+                    : activeControlPin === 3
+                    ? "Motorized Drapery"
+                    : "Lossless Audio Hub"}
+                </span>
+              </div>
+
+              {/* Selector Tabs */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveControlPin(1)}
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                    activeControlPin === 1 ? "bg-[#c9a84c] text-black font-semibold" : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
                 >
-                  {/* Glowing Wi-Fi / Radio Icon */}
-                  <div className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.7)] group-hover:scale-110 transition-transform">
-                    <Icon className="w-4 h-4 text-black" />
+                  Climate
+                </button>
+                <button
+                  onClick={() => setActiveControlPin(2)}
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                    activeControlPin === 2 ? "bg-[#c9a84c] text-black font-semibold" : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                >
+                  Lighting
+                </button>
+                <button
+                  onClick={() => setActiveControlPin(3)}
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                    activeControlPin === 3 ? "bg-[#c9a84c] text-black font-semibold" : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                >
+                  Curtains
+                </button>
+                <button
+                  onClick={() => setActiveControlPin(4)}
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                    activeControlPin === 4 ? "bg-[#c9a84c] text-black font-semibold" : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                >
+                  Audio Hub
+                </button>
+              </div>
+            </div>
+
+            {/* Live Controller Body */}
+            <div className="pt-5">
+              {/* 1. CLIMATE CONTROLLER */}
+              {activeControlPin === 1 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                  <div>
+                    <h4 className="text-sm font-medium text-white mb-1">Temperature Tuning</h4>
+                    <p className="text-xs text-neutral-400">
+                      Wall Touch Panel synchronization with dual HVAC zones.
+                    </p>
                   </div>
 
-                  {/* Hotspot Header Tag */}
-                  <div className="mt-2 px-3.5 py-1.5 rounded-full bg-white text-black font-semibold text-[11px] uppercase tracking-wider shadow-xl flex items-center gap-1.5 hover:bg-[#c9a84c] transition-colors">
-                    <span>{spot.title}</span>
-                    <span className="text-[10px] text-neutral-500 font-bold">
-                      {isExpanded ? "▲" : "▼"}
+                  {/* Temp adjuster */}
+                  <div className="flex items-center justify-center gap-5 bg-black/40 rounded-xl p-3 border border-white/10">
+                    <button
+                      onClick={() => setRoomTemperature(Math.max(18, roomTemperature - 0.5))}
+                      className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white cursor-pointer"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="text-2xl font-bold font-mono text-[#c9a84c]">
+                      {roomTemperature.toFixed(1)}°C
                     </span>
+                    <button
+                      onClick={() => setRoomTemperature(Math.min(26, roomTemperature + 0.5))}
+                      className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Mode select */}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setClimateMode("cool")}
+                      className={`px-3 py-2 rounded-lg text-xs cursor-pointer ${
+                        climateMode === "cool" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400" : "bg-white/10 text-neutral-400"
+                      }`}
+                    >
+                      ❄️ Cool Active
+                    </button>
+                    <button
+                      onClick={() => setClimateMode("eco")}
+                      className={`px-3 py-2 rounded-lg text-xs cursor-pointer ${
+                        climateMode === "eco" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400" : "bg-white/10 text-neutral-400"
+                      }`}
+                    >
+                      🌿 Eco Auto
+                    </button>
+                    <button
+                      onClick={() => setClimateMode("warm")}
+                      className={`px-3 py-2 rounded-lg text-xs cursor-pointer ${
+                        climateMode === "warm" ? "bg-amber-500/20 text-amber-300 border border-amber-400" : "bg-white/10 text-neutral-400"
+                      }`}
+                    >
+                      🔥 Warm Cove
+                    </button>
                   </div>
                 </div>
+              )}
 
-                {/* Expanded Detail Card (Click or active state) */}
-                {isExpanded && (
-                  <div className="mt-3 w-72 sm:w-80 rounded-2xl bg-white text-black p-5 shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-neutral-200 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4 text-[#c9a84c]" />
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-black">
-                          {spot.title}
-                        </h4>
-                      </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 font-medium">
-                        {spot.badge}
-                      </span>
+              {/* 2. LIGHTING CONTROLLER (Directly Changes the Room Image Lighting) */}
+              {activeControlPin === 2 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                  <div>
+                    <h4 className="text-sm font-medium text-white mb-1">Preset Mood Scenes</h4>
+                    <p className="text-xs text-neutral-400">
+                      Watch the room lighting change in real-time when selecting a scene.
+                    </p>
+                  </div>
+
+                  {/* Scene Mode Buttons */}
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    <button
+                      onClick={() => {
+                        setRoomLightingScene("sunset");
+                        setLightingDimmer(85);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                        roomLightingScene === "sunset"
+                          ? "bg-[#c9a84c] text-black shadow-[0_0_15px_rgba(201,168,76,0.6)]"
+                          : "bg-white/10 text-neutral-300 hover:bg-white/20"
+                      }`}
+                    >
+                      🌅 Warm Sunset
+                    </button>
+                    <button
+                      onClick={() => {
+                        setRoomLightingScene("cinema");
+                        setLightingDimmer(25);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                        roomLightingScene === "cinema"
+                          ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.6)]"
+                          : "bg-white/10 text-neutral-300 hover:bg-white/20"
+                      }`}
+                    >
+                      🎬 Cinema Night
+                    </button>
+                    <button
+                      onClick={() => {
+                        setRoomLightingScene("daylight");
+                        setLightingDimmer(100);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                        roomLightingScene === "daylight"
+                          ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.6)]"
+                          : "bg-white/10 text-neutral-300 hover:bg-white/20"
+                      }`}
+                    >
+                      ☀️ Crisp Daylight
+                    </button>
+                  </div>
+
+                  {/* Dimmer Slider */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-neutral-300">
+                      <span>Smooth Dimmer</span>
+                      <span className="font-mono text-[#c9a84c] font-bold">{lightingDimmer}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="10"
+                      max="100"
+                      value={lightingDimmer}
+                      onChange={(e) => setLightingDimmer(Number(e.target.value))}
+                      className="w-full accent-[#c9a84c] cursor-pointer"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 3. CURTAIN CONTROLLER */}
+              {activeControlPin === 3 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                  <div>
+                    <h4 className="text-sm font-medium text-white mb-1">Motorized Drapery Glide</h4>
+                    <p className="text-xs text-neutral-400">
+                      Whisper-quiet motorized tracks synced with solar positioning.
+                    </p>
+                  </div>
+
+                  {/* Position Toggle */}
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      onClick={() => setCurtainPosition(100)}
+                      className={`px-3 py-2 rounded-lg text-xs cursor-pointer ${
+                        curtainPosition === 100 ? "bg-[#c9a84c] text-black font-semibold" : "bg-white/10 text-neutral-300"
+                      }`}
+                    >
+                      Open 100%
+                    </button>
+                    <button
+                      onClick={() => setCurtainPosition(50)}
+                      className={`px-3 py-2 rounded-lg text-xs cursor-pointer ${
+                        curtainPosition === 50 ? "bg-[#c9a84c] text-black font-semibold" : "bg-white/10 text-neutral-300"
+                      }`}
+                    >
+                      Half 50%
+                    </button>
+                    <button
+                      onClick={() => setCurtainPosition(0)}
+                      className={`px-3 py-2 rounded-lg text-xs cursor-pointer ${
+                        curtainPosition === 0 ? "bg-[#c9a84c] text-black font-semibold" : "bg-white/10 text-neutral-300"
+                      }`}
+                    >
+                      Closed (Privacy)
+                    </button>
+                  </div>
+
+                  {/* Visual Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-neutral-300">
+                      <span>Drapery Extension</span>
+                      <span className="font-mono text-[#c9a84c] font-bold">{curtainPosition}%</span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full bg-neutral-800 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-400 to-[#c9a84c] transition-all duration-500"
+                        style={{ width: `${curtainPosition}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. AUDIO CONTROLLER */}
+              {activeControlPin === 4 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                  <div>
+                    <h4 className="text-sm font-medium text-white mb-1">Lossless Multi-Zone Audio</h4>
+                    <p className="text-xs text-neutral-400">
+                      Synchronized streaming across all living spaces.
+                    </p>
+                  </div>
+
+                  {/* Player & Soundwave animation */}
+                  <div className="flex items-center justify-center gap-4 bg-black/40 rounded-xl p-3 border border-white/10">
+                    <button
+                      onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                      className="w-10 h-10 rounded-full bg-[#c9a84c] text-black flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+                    >
+                      {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                    </button>
+
+                    {/* Equalizer bars */}
+                    <div className="flex items-end gap-1 h-7">
+                      {[12, 24, 16, 28, 20, 14, 26, 18].map((h, i) => (
+                        <span
+                          key={i}
+                          className={`w-1 rounded-full bg-[#c9a84c] transition-all ${
+                            isPlayingAudio ? "animate-pulse" : "opacity-30"
+                          }`}
+                          style={{
+                            height: isPlayingAudio ? `${h}px` : "6px",
+                            animationDelay: `${i * 120}ms`,
+                          }}
+                        />
+                      ))}
                     </div>
 
-                    <ul className="mt-3 space-y-3">
-                      {spot.features.map((feat, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-left">
-                          <CheckCircle2 className="w-4 h-4 text-[#c9a84c] shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-xs font-semibold text-neutral-900 leading-tight">
-                              {feat.label}
-                            </p>
-                            <p className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
-                              {feat.sub}
-                            </p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="text-left">
+                      <p className="text-xs font-semibold text-white">Lumiwaves Hi-Fi Sync</p>
+                      <p className="text-[10px] text-neutral-400">Evening Lounge • 96kHz 24-bit</p>
+                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
+
+                  {/* Volume Slider */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-neutral-300">
+                      <span>Volume</span>
+                      <span className="font-mono text-[#c9a84c] font-bold">{audioVolume}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={audioVolume}
+                      onChange={(e) => setAudioVolume(Number(e.target.value))}
+                      className="w-full accent-[#c9a84c] cursor-pointer"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ───────────────────────────────────────────────────────────
           5. SECTION 4: SMART SECURITY AND COMFORT (Item 3.ii)
+             Interactive Sentry: Clickable Smart Lock, Live 2K Camera HUD, Radar Sonar
       ─────────────────────────────────────────────────────────── */}
-      <section id="security" className="relative min-h-[850px] lg:min-h-[920px] flex items-center justify-center overflow-hidden border-t border-neutral-900">
-        {/* Upgraded Background Image Showcase */}
+      <section id="security" className="relative min-h-[920px] lg:min-h-[1000px] flex flex-col justify-between overflow-hidden border-t border-neutral-900 bg-neutral-950">
+        {/* Background Image: Vivid, High-Definition Twilight Villa (BRIGHT & CRISP) */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/assets/security-smart.jpg"
             alt="Zenith Smart Home Security and Comfort"
             fill
-            className="object-cover object-center brightness-90"
+            className={`object-cover object-center brightness-105 contrast-102 transition-all duration-300 ${
+              isFlashingStrobe ? "brightness-150 contrast-125" : ""
+            }`}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/70" />
+
+          {/* Flash Strobe Deterrence Overlay */}
+          {isFlashingStrobe && (
+            <div className="absolute inset-0 bg-white/35 animate-ping pointer-events-none" />
+          )}
+
+          {/* Subtle top/bottom vignettes for navigation & contrast */}
+          <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/80 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black via-black/80 to-transparent" />
         </div>
 
         {/* Section Title Banner */}
-        <div className="absolute top-10 sm:top-14 left-0 w-full z-20 text-center px-6">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight drop-shadow-lg">
+        <div className="relative z-20 text-center pt-14 px-6 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/70 border border-emerald-400/40 text-emerald-400 text-xs uppercase tracking-widest backdrop-blur-md mb-3 shadow-lg">
+            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+            <span>Active Perimeter Guard • 24/7 Monitoring</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)]">
             Smart Security and Comfort, In Your Control
           </h2>
-          <p className="text-neutral-300 text-sm sm:text-base font-light tracking-wide mt-2 drop-shadow-md">
-            Uncompromising Real-Time Protection That Adapts Quietly to Your Lifestyle
+          <p className="text-neutral-200 text-sm sm:text-base font-light tracking-wide mt-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+            Click on the digital lock, surveillance camera, or security radar markers to interact.
           </p>
         </div>
 
-        {/* Radar Hotspot Markers Layer */}
-        <div className="relative z-20 w-full max-w-[1540px] h-[750px] lg:h-[820px] mx-auto px-6">
-          {securityHotspots.map((spot) => {
-            const Icon = spot.icon;
-            const isExpanded = activeSecurityTag === spot.id;
-
-            return (
+        {/* Pinned Hardware Markers (STABLE ANCHORS - NEVER SHIFT ON CLICK) */}
+        <div className="relative z-20 w-full max-w-[1540px] flex-1 mx-auto px-6 h-[500px] sm:h-[580px]">
+          {/* PIN 1: BIOMETRIC SMART LOCK (Door Frame - Far Left) */}
+          <div className="absolute top-[48%] left-[8%] sm:top-[46%] sm:left-[11%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => {
+                setActiveSecurityPin(1);
+                handleToggleLock();
+              }}
+              className="flex flex-col items-center group cursor-pointer"
+            >
               <div
-                key={spot.id}
-                className={`absolute ${spot.coords} transition-all duration-300 z-30`}
+                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                  isDoorLocked
+                    ? "bg-emerald-500 text-black scale-110 shadow-[0_0_30px_rgba(16,185,129,0.8)]"
+                    : "bg-amber-500 text-black scale-125 animate-bounce shadow-[0_0_35px_rgba(245,158,11,0.9)]"
+                }`}
               >
-                {/* Radar Ripple Marker */}
-                <div
-                  onClick={() => setActiveSecurityTag(isExpanded ? null : spot.id)}
-                  className="flex flex-col items-center cursor-pointer group"
-                >
-                  {/* Blinking Pulse Ring */}
-                  <div className="relative flex items-center justify-center">
-                    <span className="absolute w-8 h-8 rounded-full bg-white opacity-40 animate-ripple pointer-events-none" />
-                    <span className="w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_15px_#ffffff] group-hover:scale-125 transition-transform" />
-                  </div>
-
-                  {/* Marker Tag */}
-                  <div className="mt-3 px-3.5 py-1 rounded-sm border border-white/60 bg-black/60 backdrop-blur-md text-white text-[11px] font-medium uppercase tracking-wider shadow-xl group-hover:border-[#c9a84c] group-hover:text-[#c9a84c] transition-colors">
-                    {spot.title}
-                  </div>
-                </div>
-
-                {/* Expanded Card on Click */}
-                {isExpanded && (
-                  <div className="mt-3 w-72 sm:w-80 rounded-2xl glass-panel text-white p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/20 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4 text-[#c9a84c]" />
-                        <h4 className="text-xs font-semibold text-white tracking-wide">
-                          {spot.title}
-                        </h4>
-                      </div>
-                      <span className="text-[10px] text-[#c9a84c] font-mono">24/7 ACTIVE</span>
-                    </div>
-
-                    <p className="mt-2.5 text-xs text-neutral-300 font-light leading-relaxed">
-                      {spot.desc}
-                    </p>
-
-                    <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-neutral-400">
-                      <span>{spot.meta}</span>
-                      <span className="text-[#c9a84c] font-medium flex items-center gap-1">
-                        Verified <CheckCircle2 className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
-                )}
+                {isDoorLocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
               </div>
-            );
-          })}
+              <span className="mt-2 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                {isDoorLocked ? "Locked 🔒" : "Unlocked 🔓"}
+              </span>
+            </button>
+          </div>
+
+          {/* PIN 2: 2K LIVE CAMERA SURVEILLANCE (Ceiling Dome Camera - Center Left) */}
+          <div className="absolute top-[9%] left-[38%] sm:top-[8%] sm:left-[41%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setActiveSecurityPin(activeSecurityPin === 2 ? null : 2)}
+              className="flex flex-col items-center group cursor-pointer"
+            >
+              <div className="relative flex items-center justify-center">
+                <span className="absolute w-8 h-8 rounded-full bg-emerald-400 opacity-60 animate-ripple pointer-events-none" />
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                    activeSecurityPin === 2
+                      ? "bg-[#c9a84c] text-black scale-125 shadow-[0_0_25px_rgba(201,168,76,0.9)]"
+                      : "bg-white text-black hover:bg-[#c9a84c] hover:scale-110"
+                  }`}
+                >
+                  <Camera className="w-5 h-5" />
+                </div>
+              </div>
+              <span className="mt-1.5 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                Live 2K Camera
+              </span>
+            </button>
+          </div>
+
+          {/* PIN 3: RADAR MOTION SENSING (Patio / Balcony - Left Center) */}
+          <div className="absolute top-[50%] left-[26%] sm:top-[48%] sm:left-[28%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setActiveSecurityPin(activeSecurityPin === 3 ? null : 3)}
+              className="flex flex-col items-center group cursor-pointer"
+            >
+              <div className="relative flex items-center justify-center">
+                {/* Sonar sweep effect */}
+                <div className="w-12 h-12 rounded-full border border-emerald-400/40 relative flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  <div className="absolute inset-0 rounded-full border-t border-emerald-400 animate-sonar" />
+                </div>
+              </div>
+              <span className="mt-1 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                Radar Sentry
+              </span>
+            </button>
+          </div>
+
+          {/* PIN 4: SMART ALARM DASHBOARD (Phone in Hand - Right Center) */}
+          <div className="absolute top-[40%] left-[58%] sm:top-[38%] sm:left-[56%] -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setActiveSecurityPin(activeSecurityPin === 4 ? null : 4)}
+              className="flex flex-col items-center group cursor-pointer"
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                  activeSecurityPin === 4
+                    ? "bg-[#c9a84c] text-black scale-125 shadow-[0_0_25px_rgba(201,168,76,0.9)]"
+                    : "bg-white text-black hover:bg-[#c9a84c] hover:scale-110"
+                }`}
+              >
+                <Bell className="w-5 h-5" />
+              </div>
+              <span className="mt-1.5 px-3 py-1 rounded-full bg-black/80 border border-white/30 text-white font-medium text-[11px] tracking-wider uppercase backdrop-blur-md shadow-xl whitespace-nowrap">
+                Security Console
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* ─────────────────────────────────────────────────────────────
+            LIVE INTERACTIVE SECURITY SENTRY DOCK (Real Home Security Feel)
+        ───────────────────────────────────────────────────────────── */}
+        <div className="relative z-30 max-w-[1200px] w-full mx-auto px-6 pb-12">
+          <div className="rounded-2xl glass-panel border border-white/20 p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-xs uppercase tracking-wider text-neutral-300 font-semibold">
+                  Sentry Active:
+                </span>
+                <span className="text-xs font-mono text-emerald-400">
+                  REC 2K HDR • [{currentTimeString}]
+                </span>
+              </div>
+
+              {/* Security Mode Selector */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSecurityArmMode("away")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
+                    securityArmMode === "away" ? "bg-emerald-500 text-black" : "bg-white/10 text-neutral-300"
+                  }`}
+                >
+                  🛡️ Armed Away
+                </button>
+                <button
+                  onClick={() => setSecurityArmMode("home")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
+                    securityArmMode === "home" ? "bg-[#c9a84c] text-black" : "bg-white/10 text-neutral-300"
+                  }`}
+                >
+                  🏠 Perimeter Only
+                </button>
+                <button
+                  onClick={() => setSecurityArmMode("night")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
+                    securityArmMode === "night" ? "bg-indigo-600 text-white" : "bg-white/10 text-neutral-300"
+                  }`}
+                >
+                  🌙 Night Guard
+                </button>
+              </div>
+            </div>
+
+            {/* Interactive Security Controls */}
+            <div className="pt-5 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              {/* Digital Lock Toggle */}
+              <div className="p-4 rounded-xl bg-black/50 border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-neutral-400 uppercase tracking-wider">Main Entry Door Lock</p>
+                  <p className="text-sm font-semibold text-white mt-0.5">{lockStatusMessage}</p>
+                </div>
+                <button
+                  onClick={handleToggleLock}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                    isDoorLocked
+                      ? "bg-amber-400 text-black hover:bg-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.5)]"
+                      : "bg-emerald-500 text-black hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                  }`}
+                >
+                  {isDoorLocked ? "Unlock Door" : "Lock Door"}
+                </button>
+              </div>
+
+              {/* Live Camera HUD Indicator */}
+              <div className="p-4 rounded-xl bg-black/50 border border-white/10">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Patio Dome Camera
+                  </span>
+                  <span className="text-neutral-400 font-mono">30 FPS • H.265</span>
+                </div>
+                <p className="text-xs text-neutral-300 font-light leading-snug">
+                  Target Recognition: <strong className="text-white">Family Living Room Secure (0 Threats)</strong>
+                </p>
+              </div>
+
+              {/* Deterrence Strobe Flash Action */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleFlashStrobe}
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-red-600/20 border border-red-500/50 hover:bg-red-600/40 text-red-300 font-medium text-xs tracking-wider uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                >
+                  <Eye className="w-4 h-4 text-red-400" />
+                  <span>Flash Perimeter Deterrence</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -807,8 +1328,8 @@ export default function ZenithLandingPage() {
               <ul className="space-y-2">
                 <li><a href="#hero" className="hover:text-white transition-colors">Residential Automation</a></li>
                 <li><a href="#why-zenith" className="hover:text-white transition-colors">Why Choose Zenith</a></li>
-                <li><a href="#control" className="hover:text-white transition-colors">Whole Home Control</a></li>
-                <li><a href="#security" className="hover:text-white transition-colors">Smart Security</a></li>
+                <li><a href="#control" className="hover:text-white transition-colors">Interactive Room</a></li>
+                <li><a href="#security" className="hover:text-white transition-colors">Live Security</a></li>
               </ul>
             </div>
 
